@@ -114,7 +114,9 @@ $.fn.S3Uploader = (options) ->
           name: "content-type"
           value: fileType
 
-        key = $uploadForm.data("key").replace('{timestamp}', new Date().getTime()).replace('{unique_id}', @files[0].unique_id)
+        key = $uploadForm.data("key")
+          .replace('{timestamp}', new Date().getTime())
+          .replace('{unique_id}', @files[0].unique_id)
 
         # substitute upload timestamp and unique_id into key
         data[1].value = settings.path + key
@@ -123,7 +125,11 @@ $.fn.S3Uploader = (options) ->
         # replace 'key' field to submit form
         unless 'FormData' of window
           $uploadForm.find("input[name='key']").val(settings.path + key)
-        data
+
+        if settings.before_upload
+          settings.before_upload(data, @files[0])
+        else
+          data
 
   build_content_object = ($uploadForm, file, result) ->
     content = {}
@@ -141,10 +147,7 @@ $.fn.S3Uploader = (options) ->
     content.unique_id  = file.unique_id if 'unique_id' of file
     content.relativePath = build_relativePath(file) if has_relativePath(file)
     content = $.extend content, settings.additional_data if settings.additional_data
-    if settings.before_upload
-      settings.before_upload(content)
-    else
-      content
+    content
 
   has_relativePath = (file) ->
     file.relativePath || file.webkitRelativePath
